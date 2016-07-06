@@ -1,220 +1,102 @@
+
 <html>
 <head>
     <title>How to Start with dhtmlxGantt</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
     <script src="../Scripts/dhtmlxgantt.js"></script>
     <script src="../Script/SDK.REST.js"></script>
+    <script src="../Scripts/xRM.GANTT.js"></script>
     <link href="../Styles/dhtmlxgant.css" rel="stylesheet" type="text/css">
-</head>
-<body>
-    <div id="gantt_here" style="width: 1000px; height: 400px;"></div>
-    <script type="text/javascript">
 
-        if (window.parent.Xrm.Page.ui.getFormType() !== 1 || Window.parent.Xrm.Page.ui.getFormType() !== 5) {
-            var tasks = {};
-            tasks.data = [];
-            tasks.links = [];
-            SDK.REST.retrieveMultipleRecords(
-                "Task",
-                "$select=ActivityId, Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,PercentComplete&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
-                function (results) {
-                    tasks.data = [];
-                    if (!results) return;
-                    for (var i = 0; i < results.length; i++) {
-                        tasks.data[i] = {
-                            id: results[i].ActivityId,
-                            text: results[i].Subject,
-                            start_date: results[i].ActualStart,
-                            end_date: results[i].ActualEnd,
-                            duration: results[i].ActualDurationMinutes,
-                            parent: results[i].xrm_ParentGanttId.Id,
-                            progress: results[i].PercentComplete / 100
-                        }
-                    }
-                    gantt.init("gantt_here");
-                    gantt.parse(tasks);
-                },
-                function (error) { alert("fail retrieve all :" + error.message); },
-                function () {
-                }
-            );
-
-            var tasks1 = {
-                data: [
-                    {
-                        id: 1,
-                        text: "Project #1",
-                        start_date: "01-04-2013",
-                        duration: 11,
-                        progress: 0.6,
-                        open: true
-                    },
-                    {
-                        id: 2,
-                        text: "Task #1",
-                        start_date: "03-04-2013",
-                        duration: 5,
-                        progress: 1,
-                        open: true,
-                        parent: 1
-                    },
-                    {
-                        id: 3,
-                        text: "Task #2",
-                        start_date: "02-04-2013",
-                        duration: 7,
-                        progress: 0.5,
-                        open: true,
-                        parent: 1
-                    },
-                    {
-                        id: 4,
-                        text: "Task #2.1",
-                        start_date: "03-04-2013",
-                        duration: 2,
-                        progress: 1,
-                        open: true,
-                        parent: 3
-                    },
-                    {
-                        id: 5,
-                        text: "Task #2.2",
-                        start_date: "04-04-2013",
-                        duration: 3,
-                        progress: 0.8,
-                        open: true,
-                        parent: 3
-                    },
-                    {
-                        id: 6,
-                        text: "Task #2.3",
-                        start_date: "05-04-2013",
-                        duration: 4,
-                        progress: 0.2,
-                        open: true,
-                        parent: 3
-                    }
-                ],
-                links: [
-                    { id: 1, source: 1, target: 2, type: "1" },
-                    { id: 2, source: 1, target: 3, type: "1" },
-                    { id: 3, source: 3, target: 4, type: "1" },
-                    { id: 4, source: 4, target: 5, type: "0" },
-                    { id: 5, source: 5, target: 6, type: "0" }
-                ]
-
-            };
-
-            gantt.attachEvent("onAfterTaskAdd", function (id, item) {
-                var task = gantt.getTask(id);
-                var taskCrm = {
-                    Subject: task.text,
-                    ActualStart: new Date(task.start_date),
-                    ActualDurationMinutes: task.duration,
-                    ActualEnd: new Date(task.end_date),
-                    xrm_ProjectId: {
-                        Id: window.parent.Xrm.Page.data.entity.getId(),
-                        LogicalName: window.parent.Xrm.Page.data.entity.getEntityName,
-                        Name: window.parent.Xrm.Page.data.entity.getPrimaryAttributeValue
-                    }
-                };
-
-                if (task.parent !== 0) {
-                    var taskParent = gantt.getTask(task.parent);
-                    taskCrm.xrm_ParentGanttId = {
-                        Id: taskParent.id,
-                        LogicalName: "task",
-                        Name: taskParent.text
-                    }
-                }
-
-
-                SDK.REST.createRecord(taskCrm,
-                    "Task",
-                    function (record) {
-                        gantt.changeTaskId(task.id, record.ActivityId);
-                    },
-                    function (error) { alert("fail create :" + error.message); });
-            });
-
-            gantt.attachEvent("onBeforeTaskUpdate", function (id, item) {
-                var task = gantt.getTask(id);
-                var taskCrm = {
-                    Subject: task.text,
-                    ActualStart: new Date(task.start_date),
-                    ActualDurationMinutes: task.duration,
-                    ActualEnd: new Date(task.end_date),
-                    PercentComplete: Math.round(task.progress * 100),
-                    xrm_ProjectId: {
-                        Id: window.parent.Xrm.Page.data.entity.getId(),
-                        LogicalName: window.parent.Xrm.Page.data.entity.getEntityName,
-                        Name: window.parent.Xrm.Page.data.entity.getPrimaryAttributeValue
-                    }
-                };
-
-                if (task.parent !== 0) {
-                    var taskParent = gantt.getTask(task.parent);
-                    taskCrm.xrm_ParentGanttId = {
-                        Id: taskParent.id,
-                        LogicalName: "task",
-                        Name: taskParent.text
-                    }
-                }
-
-                SDK.REST.updateRecord(id,
-                    taskCrm,
-                    "Task",
-                    function (record) {
-                    },
-                    function (error) { alert("fail update :" + error.message); });
-            });
-
-            gantt.attachEvent("onBeforeTaskDelete", function (id, item) {
-                var toDelete = [];
-                var j = 0;
-                function recursivedelete() {
-                    SDK.REST.deleteRecord(toDelete[j],
-                        "Task",
-                        function (record) {
-                            j++;
-                            if (j < toDelete.length)
-                                recursivedelete();
-                        },
-                        function (error) { alert("fail update :" + error.message); });
-                }
-
-                toDelete[0] = id;
-                for (var i = 0; i < toDelete.length; i++) {
-                    if (!gantt.hasChild(toDelete[i])) continue;
-
-                    toDelete.push.apply(toDelete, gantt.getChildren(toDelete[i]));
-                }
-                recursivedelete();
-            });
-
-
-            gantt.attachEvent("onBeforeLinkAdd", function (id, item) {
-                var link = gantt.getlink(id);
-                var taskCrm = {};
-                taskCrm.Subject = link.text;
-                taskCrm.ActualStart = new Date(link.start_date);
-                taskCrm.ActualDurationMinutes = link.duration;
-                taskCrm.ActualEnd = new Date(link.end_date);
-
-                //taskCrm.xrm_ParentGanttId = task.parent;
-
-                SDK.REST.createRecord(taskCrm,
-                    "Task",
-                    function (record) {
-                        gantt.changeTaskId(task.id, record.ActivityId);
-                    },
-                    function (error) { alert("fail addlink :" + error.message); });
-            });
-
-
-
+    <style type="text/css" media="screen">
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
         }
-    </script>
 
+        .sample_header input, .sample_header span, .sample_header strong {
+            vertical-align: middle;
+        }
 
+        #filter_days, #filter_hours {
+            display: inline-block;
+        }
+
+        .sample_header input {
+            margin: 0 0 0 6px;
+        }
+
+        .sample_header label span {
+            padding-right: 4px;
+        }
+
+        .sample_header label {
+            cursor: pointer;
+        }
+
+        .project {
+            background: #3C9445;
+            border-color: #3C9445;
+        }
+
+            .project .gantt_task_progress {
+                background: #65C16F;
+                -webkit-box-shadow: none;
+                -ms-box-shadow: none;
+                box-shadow: none;
+                border: none;
+            }
+
+        .weekend {
+            background: #f4f7f4 !important;
+        }
+
+        .gantt_selected .weekend {
+            background: #FFF3A1 !important;
+        }
+
+        .gantt_task_line.project {
+            background-image: none;
+        }
+
+        .gantt_task_line {
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyFpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDE0IDc5LjE1MTQ4MSwgMjAxMy8wMy8xMy0xMjowOToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDowNEE4NEUwREFFQTYxMUUzOEMzREFBRTVCQjg1NkI5NiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDowNEE4NEUwRUFFQTYxMUUzOEMzREFBRTVCQjg1NkI5NiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjA0QTg0RTBCQUVBNjExRTM4QzNEQUFFNUJCODU2Qjk2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjA0QTg0RTBDQUVBNjExRTM4QzNEQUFFNUJCODU2Qjk2Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+u/+i7gAAACRJREFUeNpidD34mwEMLn1kYIKzgIAFQgGBHj9MBsgCAoAAAwAVeQfO2h1NhwAAAABJRU5ErkJggg==);
+        }
+
+        .controls_bar {
+            border-top: 1px solid #bababa;
+            border-bottom: 1px solid #bababa;
+            clear: both;
+            margin-top: 0;
+            height: 28px;
+            background: #f1f1f1;
+            color: #494949;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            padding-left: 10px;
+            line-height: 25px;
+        }
+    </style>
+</head>
+<body onload="xRM.GANTT.OnLoad()">
+    <div class="controls_bar" style="height:25px; overflow:hidden;">
+        <strong> Zooming: &nbsp; </strong>
+        <label>
+            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="week">
+            <span>Hours</span>
+        </label>
+        <label>
+            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="trplweek" checked="checked">
+            <span>Days</span>
+        </label>
+        <label>
+            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="year">
+            <span>Months</span>
+        </label>
+    </div>
+
+    <div id="gantt_here" style="width:100%; height:100%;"></div>
 </body>
 </html>
