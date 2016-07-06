@@ -56,7 +56,7 @@ xRM.DurationTemplate = function (obj) {
         case xRM.ZOOM_LEVELS.WEEK:
             {
                 var daysPerWeek = 7;
-                if(duration % daysPerWeek === 0) {
+                if (duration % daysPerWeek === 0) {
                     return duration / daysPerWeek;
                 }
                 return parseFloat(duration / daysPerWeek).toFixed(1);
@@ -208,12 +208,38 @@ xRM.GANTT = {
         gantt.locale.labels["type_appointment"] = "Appointment";
 
         gantt.config.lightbox["appointment_sections"] = [
-             { name: "title", height: 20, map_to: "text", type: "textarea", focus: true },
-            { name: "details", height: 70, map_to: "details", type: "textarea" },
-            { name: "type", type: "typeselect", map_to: "type" },
-            { name: "time", height: 72, type: "time", map_to: "auto" }
+             {
+                 name: "title",
+                 height: 20,
+                 map_to: "text",
+                 type: "textarea",
+                 focus: true
+             },
+            {
+                name: "details",
+                height: 70,
+                map_to: "details",
+                type: "textarea"
+            },
+            {
+                name: "type",
+                type: "typeselect",
+                map_to: "type"
+            },
+            {
+                name: "time",
+                height: 72,
+                type: "time",
+                map_to: "auto"
+            }
         ];
 
+        var opts = [
+    { key: 1, label: "Task" },
+    { key: 2, label: "Appointment" }
+        ];
+        gantt.locale.labels.section_entitytype = "Type";
+        gantt.locale.labels.section_owner = "Owner";
         gantt.config.lightbox.sections = [
         {
             name: "description",
@@ -226,15 +252,12 @@ xRM.GANTT = {
             type: "typeselect", map_to: "type"
         },
          {
-             name: "priority",
+             name: "entitytype",
              height: 22,
-             map_to: "priority",
              type: "select",
-             options: [
-                 { key: "0", label: "Low" },
-                 { key: "1", label: "Normal" },
-                 { key: "2", label: "High" }
-             ]
+             map_to: "entitytype",
+             options: opts,
+             default_value: 1
          },
             {
                 name: "time",
