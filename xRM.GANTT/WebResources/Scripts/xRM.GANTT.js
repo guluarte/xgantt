@@ -16,10 +16,23 @@ xRM.FORM_TYPES = {
     READ_OPTMIZED: 11
 };
 
+xRM.TASK_TYPE_GANTT_CODE = {
+    TASK: 163650000,
+    PROJECT: 163650001,
+    MILESTONE: 163650002
+};
+
+xRM.TYPE_CODE = {
+    FINISH_TO_START: 163650000,
+    START_TO_START: 163650001,
+    FINISH_TO_FINISH: 163650002,
+    START_TO_FINISH: 163650003
+};
+
 xRM.GANTT = {
     OnLoad: function () {
 
-        if (window.parent.Xrm.Page.ui.getFormType() !== 1 || Window.parent.Xrm.Page.ui.getFormType() !== 5) {
+        if (window.parent.Xrm.Page.ui.getFormType() !== xRM,FORM_TYPES.CREATE || Window.parent.Xrm.Page.ui.getFormType() !== xRM,FORM_TYPES.QUICK_CREATE) {
             xRM.GANTT.GetTasks();
             xRM.GANTT.AttachGanntEvents();
         }
@@ -59,25 +72,25 @@ xRM.GANTT = {
             function () { });
 
     },
-    OnSuccessGetLinks: function (Links, tasks) {
+    OnSuccessGetLinks: function (links, tasks) {
         tasks.links = [];
-        for (var i = 0; i < Links.length; i++) {
+        for (var i = 0; i < links.length; i++) {
             tasks.links[i] = {
-                id: Links[i].xrm_taskdependencyId,
-                source: Links[i].xrm_SourceTaskId.Id,
-                target: Links[i].xrm_TargetTaskId.Id
+                id: links[i].xrm_taskdependencyId,
+                source: links[i].xrm_SourceTaskId.Id,
+                target: links[i].xrm_TargetTaskId.Id
             }
-            switch (Links[i].xrm_TypeCode.Value) {
-                case 163650000:
+            switch (links[i].xrm_TypeCode.Value) {
+                case xRM.TYPE_CODE.FINISH_TO_START:
                     tasks.links[i].type = "0";
                     break;
-                case 163650001:
+                case xRM.TYPE_CODE.START_TO_START:
                     tasks.links[i].type = "1";
                     break;
-                case 163650002:
+                case xRM.TYPE_CODE.FINISH_TO_FINISH:
                     tasks.links[i].type = "2";
                     break;
-                case 163650003:
+                case xRM.TYPE_CODE.START_TO_FINISH:
                     tasks.links[i].type = "3";
                     break;
             }
@@ -228,16 +241,16 @@ xRM.GANTT = {
         };
         switch (link.type) {
             case "0":
-                linkCrm.xrm_TypeCode = { Value: 163650000 };
+                linkCrm.xrm_TypeCode = { Value: xRM.TYPE_CODE.FINISH_TO_START };
                 break;
             case "1":
-                linkCrm.xrm_TypeCode = { Value: 163650001 };
+                linkCrm.xrm_TypeCode = { Value: xRM.TYPE_CODE.START_TO_FINISH };
                 break;
             case "2":
-                linkCrm.xrm_TypeCode = { Value: 163650002 };
+                linkCrm.xrm_TypeCode = { Value: xRM.TYPE_CODE.FINISH_TO_FINISH };
                 break;
             case "3":
-                linkCrm.xrm_TypeCode = { Value: 163650003 };
+                linkCrm.xrm_TypeCode = { Value: xRM.TYPE_CODE.START_TO_FINISH };
                 break;
         }
 
