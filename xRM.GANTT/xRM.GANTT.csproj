@@ -206,7 +206,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /y "$(ProjectDir)Scripts\dhtmlxgantt.js" "$(ProjectDir)$(OutDir)WebResources\Scripts\dhtmlxgantt.js"
-copy /y "$(ProjectDir)Content\dhtmlxgantt\dhtmlxgantt_skyblue.css" "$(ProjectDir)$(OutDir)WebResources\Styles\dhtmlxgant.css"</PostBuildEvent>
+copy /y "$(ProjectDir)Content\dhtmlxgantt\dhtmlxgantt_terrace.css" "$(ProjectDir)$(OutDir)WebResources\Styles\dhtmlxgant.css"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -29,6 +29,60 @@ xRM.TYPE_CODE = {
     START_TO_FINISH: 163650003
 };
 
+xRM.ZOOM_LEVELS = {
+    HOUR: 10,
+    DAY: 20,
+    WEEK: 30,
+    MONTH: 40,
+    YEAR: 1000
+};
+
+xRM.ZoomLevel = xRM.ZOOM_LEVELS.DAY;
+
+xRM.DurationTemplate = function (obj) {
+
+    var duration = obj.duration;
+
+    switch (xRM.ZoomLevel) {
+
+        case xRM.ZOOM_LEVELS.HOUR:
+            {
+                return duration * 24;
+            }
+        case xRM.ZOOM_LEVELS.DAY:
+            {
+                return duration;
+            }
+        case xRM.ZOOM_LEVELS.WEEK:
+            {
+                var daysPerWeek = 7;
+                if(duration % daysPerWeek === 0) {
+                    return duration / daysPerWeek;
+                }
+                return parseFloat(duration / daysPerWeek).toFixed(1);
+            }
+        case xRM.ZOOM_LEVELS.MONTH:
+            {
+                var daysPerMonth = 30;
+                if (duration % daysPerMonth === 0) {
+                    return duration / daysPerMonth;
+                }
+                return parseFloat(duration / daysPerMonth).toFixed(1);
+            }
+
+        case xRM.ZOOM_LEVELS.YEAR:
+            {
+                return parseFloat(duration / 365).toFixed(2);
+            }
+    }
+
+    return duration;
+};
+
+xRM.IsEmpty = function (value) {
+    return (value == null || value.length === 0);
+};
+
 xRM.GANTT = {
     OnLoad: function () {
         if (window.parent.Xrm.Page.getAttribute("xrm_name").getValue() != String.empty) {
@@ -98,33 +152,57 @@ xRM.GANTT = {
                     break;
             }
         }
-        gantt.init("gantt_here");
-        gantt.parse(tasks);
 
+        gantt.init("gantt_here");
+
+        gantt.parse(tasks);
     },
     timeScalingOnLoadFunctions: function () {
         gantt.config.details_on_create = true;
 
         gantt.config.columns = [
-            { name: "text", label: "Task name", width: "*", tree: true },
+            {
+                name: "text",
+                label: "Task name",
+                width: "*",
+                tree: true
+            },
             {
                 name: "progress",
                 label: "Progress",
-                template: function (obj) { return Math.round(obj.progress * 100) + "%"; },
+                template: function (obj) {
+                    if (xRM.IsEmpty(obj.progress)) {
+                        return "0%";
+                    }
+                    return Math.round(obj.progress * 100) + "%";
+                },
                 align: "center",
                 width: 60
             },
             {
                 name: "priority",
                 label: "Priority",
-                template: function (obj) { return gantt.getLabel("priority", obj.priority); },
+                template: function (obj) {
+                    return gantt.getLabel("priority", obj.priority);
+                },
                 align: "center",
                 width: 60
             },
-            { name: "add", label: "", width: 44 }
+             {
+                 name: "duration",
+                 label: "Duration",
+                 width: 120,
+                 template: xRM.DurationTemplate,
+                 align: "center"
+             },
+            {
+                name: "add",
+                label: "",
+                width: 44
+            }
         ];
 
-        gantt.config.grid_width = 390;
+        gantt.config.grid_width = 510;
 
         gantt.config.types["appointment"] = "appointmentid";
         gantt.locale.labels["type_appointment"] = "Appointment";
@@ -137,29 +215,42 @@ xRM.GANTT = {
         ];
 
         gantt.config.lightbox.sections = [
-        { name: "description", height: 38, map_to: "text", type: "textarea", focus: true },
-        { name: "type", type: "typeselect", map_to: "type" },
-         //{
-         //    name: "priority",
-         //    height: 22,
-         //    map_to: "priority",
-         //    type: "select",
-         //    options: [
-         //        { key: "0", label: "Low" },
-         //        { key: "1", label: "Normal" },
-         //        { key: "2", label: "High" }
-         //    ]
-         //},
-         //   { name: "time", type: "duration", map_to: "auto", time_format: ["%d", "%m", "%Y", "%H:%i"] },
-         //   {
-         //       name: "owner",
-         //       height: 22,
-         //       map_to: "owner",
-         //       type: "select",
-         //       options: [
-         //           { key: "0", label: "" }
-         //       ]
-         //   }
+        {
+            name: "description",
+            height: 38, map_to: "text",
+            type: "textarea",
+            focus: true
+        },
+        {
+            name: "type",
+            type: "typeselect", map_to: "type"
+        },
+         {
+             name: "priority",
+             height: 22,
+             map_to: "priority",
+             type: "select",
+             options: [
+                 { key: "0", label: "Low" },
+                 { key: "1", label: "Normal" },
+                 { key: "2", label: "High" }
+             ]
+         },
+            {
+                name: "time",
+                type: "duration",
+                map_to: "auto",
+                time_format: ["%d", "%m", "%Y", "%H:%i"]
+            },
+            {
+                name: "owner",
+                height: 22,
+                map_to: "owner",
+                type: "select",
+                options: [
+                    { key: "0", label: "" }
+                ]
+            }
 
         ];
     },
@@ -205,9 +296,14 @@ xRM.GANTT = {
 
         gantt.render();
     },
+
     zoomTasks: function (node) {
+
+        xRM.ZoomLevel = xRM.ZOOM_LEVELS.DAY;
+
         switch (node.value) {
-            case "week":
+            case "hour":
+                xRM.ZoomLevel = xRM.ZOOM_LEVELS.HOUR;
                 gantt.config.scale_unit = "day";
                 gantt.config.date_scale = "%d %M";
                 gantt.config.scale_height = 60;
@@ -216,30 +312,55 @@ xRM.GANTT = {
                     { unit: "hour", step: 1, date: "%H" }
                 ];
                 break;
-            case "trplweek":
-                gantt.config.min_column_width = 70;
+            case "day":
+                xRM.ZoomLevel = xRM.ZOOM_LEVELS.DAY;
                 gantt.config.scale_unit = "day";
+                gantt.config.step = 1;
                 gantt.config.date_scale = "%d %M";
                 gantt.config.subscales = [];
-                gantt.config.scale_height = 35;
+                gantt.config.scale_height = 27;
+                gantt.config.min_column_width = 50;
+                gantt.templates.date_scale = null;
+                break;
+            case "week":
+                xRM.ZoomLevel = xRM.ZOOM_LEVELS.WEEK;
+                var weekScaleTemplate = function (date) {
+                    var dateToStr = gantt.date.date_to_str("%d %M");
+                    var endDate = gantt.date.add(gantt.date.add(date, 1, "week"), -1, "day");
+                    return dateToStr(date) + " - " + dateToStr(endDate);
+                };
+
+                gantt.config.scale_unit = "week";
+                gantt.config.step = 1;
+                gantt.templates.date_scale = weekScaleTemplate;
+                gantt.config.subscales = [
+					{ unit: "day", step: 1, date: "%D" }
+                ];
+                gantt.config.scale_height = 50;
                 break;
             case "month":
-                gantt.config.min_column_width = 70;
-                gantt.config.scale_unit = "week";
-                gantt.config.date_scale = "Week #%W";
-                gantt.config.subscales = [
-                    { unit: "day", step: 1, date: "%D" }
-                ];
-                gantt.config.scale_height = 60;
-                break;
-            case "year":
-                gantt.config.min_column_width = 70;
+                xRM.ZoomLevel = xRM.ZOOM_LEVELS.MONTH;
                 gantt.config.scale_unit = "month";
-                gantt.config.date_scale = "%M";
-                gantt.config.scale_height = 60;
+                gantt.config.date_scale = "%F, %Y";
                 gantt.config.subscales = [
-                    { unit: "week", step: 1, date: "#%W" }
+					{ unit: "day", step: 1, date: "%j, %D" }
                 ];
+                gantt.config.scale_height = 50;
+                gantt.templates.date_scale = null;
+            case "year":
+                xRM.ZoomLevel = xRM.ZOOM_LEVELS.YEAR;
+                gantt.config.scale_unit = "year";
+                gantt.config.step = 1;
+                gantt.config.date_scale = "%Y";
+                gantt.config.min_column_width = 50;
+
+                gantt.config.scale_height = 50;
+                gantt.templates.date_scale = null;
+
+
+                gantt.config.subscales = [
+					{ unit: "month", step: 1, date: "%M" }
+                ];
                 break;
         }
         xRM.GANTT.setScaleUnits();
@@ -285,7 +406,7 @@ xRM.GANTT = {
                 "Task",
                 function (record) { gantt.changeTaskId(task.id, record.ActivityId); },
                 function (data) { xRM.GANTT.OnError(data) });
-        })
+        });
     },
     OnBeforeTaskUpdate: function () {
         gantt.attachEvent("onBeforeTaskUpdate", function (id, item) {
@@ -318,7 +439,7 @@ xRM.GANTT = {
                 "Task",
                 function (record) { },
                 function (data) { xRM.GANTT.OnError(data) });
-        })
+        });
     },
     OnBeforeTaskDelete: function () {
         gantt.attachEvent("onBeforeTaskDelete", function (id, item) {
@@ -368,7 +489,7 @@ xRM.GANTT = {
             }
             recursiveLinkdelete();
             recursivedelete();
-        })
+        });
     },
     OnAfterLinkAdd: function () {
         gantt.attachEvent("onAfterLinkAdd", function (id, item) {
@@ -414,7 +535,7 @@ xRM.GANTT = {
                     gantt.changeLinkId(link.id, record.xrm_taskdependencyId);
                 },
                 function (data) { xRM.GANTT.OnError(data) });
-        })
+        });
     },
     OnBeforeLinkDelete: function () {
         gantt.attachEvent("onBeforeLinkDelete", function (id, item) {
@@ -424,7 +545,7 @@ xRM.GANTT = {
                 function (record) { },
                 function (data) { xRM.GANTT.OnError(data) });
         }
-        )
+        );
     },
     HideGantt: function () {
         if (Xrm.Page.getAttribute("xrm_name").getValue() == String.empty) {

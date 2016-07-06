@@ -15,7 +15,9 @@
             height: 100%;
             overflow: hidden;
         }
-
+        div.gantt_hor_scroll {
+            top: -60px;
+        }
         .sample_header input, .sample_header span, .sample_header strong {
             vertical-align: middle;
         }
@@ -84,19 +86,25 @@
     <div class="controls_bar" style="height:25px; overflow:hidden;">
         <strong> Zooming: &nbsp; </strong>
         <label>
-            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="week">
+            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="hour">
             <span>Hours</span>
         </label>
         <label>
-            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="trplweek" checked="checked">
+            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="day" checked="checked">
             <span>Days</span>
         </label>
         <label>
-            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="year">
+            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="week">
+            <span>Weeks</span>
+        </label>
+        <label>
+            <input name="scales" onclick="xRM.GANTT.zoomTasks(this)" type="radio" value="month">
             <span>Months</span>
         </label>
     </div>
 
-    <div id="gantt_here" style="width:100%; height:100%;"></div>
+
+    <div id="gantt_here" style='width:100%; height:500px; overflow: scroll;'></div>
+
 </body>
 </html>
