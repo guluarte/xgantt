@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{552F317F-F306-4EB7-A8C9-437E4E07CB41}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>xRM.GANTT</RootNamespace>
+    <AssemblyName>xRM.GANTT</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+    <None Include="Scripts\sources\dhtmlxgantt.js.map" />
+    <None Include="Scripts\sources\ext\dhtmlxgantt_csp.js.map" />
+    <None Include="Scripts\sources\ext\dhtmlxgantt_fullscreen.js.map" />
+    <None Include="Scripts\sources\ext\dhtmlxgantt_marker.js.map" />
+    <None Include="Scripts\sources\ext\dhtmlxgantt_multiselect.js.map" />
+    <None Include="Scripts\sources\ext\dhtmlxgantt_quick_info.js.map" />
+    <None Include="Scripts\sources\ext\dhtmlxgantt_smart_rendering.js.map" />
+    <None Include="Scripts\sources\ext\dhtmlxgantt_tooltip.js.map" />
+    <None Include="Scripts\sources\ext\dhtmlxgantt_undo.js.map" />
+    <None Include="Scripts\sources\locale\locale.js.map" />
+    <None Include="Scripts\sources\locale\locale_ar.js.map" />
+    <None Include="Scripts\sources\locale\locale_be.js.map" />
+    <None Include="Scripts\sources\locale\locale_ca.js.map" />
+    <None Include="Scripts\sources\locale\locale_cn.js.map" />
+    <None Include="Scripts\sources\locale\locale_cs.js.map" />
+    <None Include="Scripts\sources\locale\locale_da.js.map" />
+    <None Include="Scripts\sources\locale\locale_de.js.map" />
+    <None Include="Scripts\sources\locale\locale_el.js.map" />
+    <None Include="Scripts\sources\locale\locale_es.js.map" />
+    <None Include="Scripts\sources\locale\locale_fi.js.map" />
+    <None Include="Scripts\sources\locale\locale_fr.js.map" />
+    <None Include="Scripts\sources\locale\locale_he.js.map" />
+    <None Include="Scripts\sources\locale\locale_hu.js.map" />
+    <None Include="Scripts\sources\locale\locale_id.js.map" />
+    <None Include="Scripts\sources\locale\locale_it.js.map" />
+    <None Include="Scripts\sources\locale\locale_jp.js.map" />
+    <None Include="Scripts\sources\locale\locale_kr.js.map" />
+    <None Include="Scripts\sources\locale\locale_nb.js.map" />
+    <None Include="Scripts\sources\locale\locale_nl.js.map" />
+    <None Include="Scripts\sources\locale\locale_no.js.map" />
+    <None Include="Scripts\sources\locale\locale_pl.js.map" />
+    <None Include="Scripts\sources\locale\locale_pt.js.map" />
+    <None Include="Scripts\sources\locale\locale_ro.js.map" />
+    <None Include="Scripts\sources\locale\locale_ru.js.map" />
+    <None Include="Scripts\sources\locale\locale_si.js.map" />
+    <None Include="Scripts\sources\locale\locale_sk.js.map" />
+    <None Include="Scripts\sources\locale\locale_sv.js.map" />
+    <None Include="Scripts\sources\locale\locale_tr.js.map" />
+    <None Include="Scripts\sources\locale\locale_ua.js.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Scripts\typings\xrm\parature.d.ts" />
+    <TypeScriptCompile Include="Scripts\typings\xrm\xrm-6.d.ts" />
+    <TypeScriptCompile Include="Scripts\typings\xrm\xrm-7.0.d.ts" />
+    <TypeScriptCompile Include="Scripts\typings\xrm\xrm.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\dhtmlxgantt\dhtmlxgantt_broadway.css" />
+    <Content Include="Content\dhtmlxgantt\dhtmlxgantt_meadow.css" />
+    <Content Include="Content\dhtmlxgantt\dhtmlxgantt_skyblue.css" />
+    <Content Include="Content\dhtmlxgantt\dhtmlxgantt_terrace.css" />
+    <Content Include="Content\dhtmlxgantt\sources\dhtmlxgantt_broadway.css" />
+    <Content Include="Content\dhtmlxgantt\sources\dhtmlxgantt_meadow.css" />
+    <Content Include="Content\dhtmlxgantt\sources\dhtmlxgantt_skyblue.css" />
+    <Content Include="Content\dhtmlxgantt\sources\dhtmlxgantt_terrace.css" />
+    <Content Include="Scripts\dhtmlxgantt.js" />
+    <Content Include="Scripts\ext\dhtmlxgantt_csp.js" />
+    <Content Include="Scripts\ext\dhtmlxgantt_fullscreen.js" />
+    <Content Include="Scripts\ext\dhtmlxgantt_marker.js" />
+    <Content Include="Scripts\ext\dhtmlxgantt_multiselect.js" />
+    <Content Include="Scripts\ext\dhtmlxgantt_quick_info.js" />
+    <Content Include="Scripts\ext\dhtmlxgantt_smart_rendering.js" />
+    <Content Include="Scripts\ext\dhtmlxgantt_tooltip.js" />
+    <Content Include="Scripts\ext\dhtmlxgantt_undo.js" />
+    <Content Include="Scripts\locale\locale.js" />
+    <Content Include="Scripts\locale\locale_ar.js" />
+    <Content Include="Scripts\locale\locale_be.js" />
+    <Content Include="Scripts\locale\locale_ca.js" />
+    <Content Include="Scripts\locale\locale_cn.js" />
+    <Content Include="Scripts\locale\locale_cs.js" />
+    <Content Include="Scripts\locale\locale_da.js" />
+    <Content Include="Scripts\locale\locale_de.js" />
+    <Content Include="Scripts\locale\locale_el.js" />
+    <Content Include="Scripts\locale\locale_es.js" />
+    <Content Include="Scripts\locale\locale_fi.js" />
+    <Content Include="Scripts\locale\locale_fr.js" />
+    <Content Include="Scripts\locale\locale_he.js" />
+    <Content Include="Scripts\locale\locale_hu.js" />
+    <Content Include="Scripts\locale\locale_id.js" />
+    <Content Include="Scripts\locale\locale_it.js" />
+    <Content Include="Scripts\locale\locale_jp.js" />
+    <Content Include="Scripts\locale\locale_kr.js" />
+    <Content Include="Scripts\locale\locale_nb.js" />
+    <Content Include="Scripts\locale\locale_nl.js" />
+    <Content Include="Scripts\locale\locale_no.js" />
+    <Content Include="Scripts\locale\locale_pl.js" />
+    <Content Include="Scripts\locale\locale_pt.js" />
+    <Content Include="Scripts\locale\locale_ro.js" />
+    <Content Include="Scripts\locale\locale_ru.js" />
+    <Content Include="Scripts\locale\locale_si.js" />
+    <Content Include="Scripts\locale\locale_sk.js" />
+    <Content Include="Scripts\locale\locale_sv.js" />
+    <Content Include="Scripts\locale\locale_tr.js" />
+    <Content Include="Scripts\locale\locale_ua.js" />
+    <Content Include="Scripts\sources\dhtmlxgantt.js" />
+    <Content Include="Scripts\sources\ext\dhtmlxgantt_csp.js" />
+    <Content Include="Scripts\sources\ext\dhtmlxgantt_fullscreen.js" />
+    <Content Include="Scripts\sources\ext\dhtmlxgantt_marker.js" />
+    <Content Include="Scripts\sources\ext\dhtmlxgantt_multiselect.js" />
+    <Content Include="Scripts\sources\ext\dhtmlxgantt_quick_info.js" />
+    <Content Include="Scripts\sources\ext\dhtmlxgantt_smart_rendering.js" />
+    <Content Include="Scripts\sources\ext\dhtmlxgantt_tooltip.js" />
+    <Content Include="Scripts\sources\ext\dhtmlxgantt_undo.js" />
+    <Content Include="Scripts\sources\locale\locale.js" />
+    <Content Include="Scripts\sources\locale\locale_ar.js" />
+    <Content Include="Scripts\sources\locale\locale_be.js" />
+    <Content Include="Scripts\sources\locale\locale_ca.js" />
+    <Content Include="Scripts\sources\locale\locale_cn.js" />
+    <Content Include="Scripts\sources\locale\locale_cs.js" />
+    <Content Include="Scripts\sources\locale\locale_da.js" />
+    <Content Include="Scripts\sources\locale\locale_de.js" />
+    <Content Include="Scripts\sources\locale\locale_el.js" />
+    <Content Include="Scripts\sources\locale\locale_es.js" />
+    <Content Include="Scripts\sources\locale\locale_fi.js" />
+    <Content Include="Scripts\sources\locale\locale_fr.js" />
+    <Content Include="Scripts\sources\locale\locale_he.js" />
+    <Content Include="Scripts\sources\locale\locale_hu.js" />
+    <Content Include="Scripts\sources\locale\locale_id.js" />
+    <Content Include="Scripts\sources\locale\locale_it.js" />
+    <Content Include="Scripts\sources\locale\locale_jp.js" />
+    <Content Include="Scripts\sources\locale\locale_kr.js" />
+    <Content Include="Scripts\sources\locale\locale_nb.js" />
+    <Content Include="Scripts\sources\locale\locale_nl.js" />
+    <Content Include="Scripts\sources\locale\locale_no.js" />
+    <Content Include="Scripts\sources\locale\locale_pl.js" />
+    <Content Include="Scripts\sources\locale\locale_pt.js" />
+    <Content Include="Scripts\sources\locale\locale_ro.js" />
+    <Content Include="Scripts\sources\locale\locale_ru.js" />
+    <Content Include="Scripts\sources\locale\locale_si.js" />
+    <Content Include="Scripts\sources\locale\locale_sk.js" />
+    <Content Include="Scripts\sources\locale\locale_sv.js" />
+    <Content Include="Scripts\sources\locale\locale_tr.js" />
+    <Content Include="Scripts\sources\locale\locale_ua.js" />
+    <Content Include="WebResources\Scripts\SDK.REST.js" />
+    <Content Include="WebResources\Scripts\xRM.GANTT.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebResources\Styles\_blank.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebResources\WebPage\GANTT.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Crm.Sdk.Proxy, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dynamics.Crm.Sdk.Clean.7.1.2.1\lib\Microsoft.Crm.Sdk.Proxy.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xrm.Client, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dynamics.Crm.Sdk.Clean.7.1.2.1\lib\Microsoft.Xrm.Client.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xrm.Sdk, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dynamics.Crm.Sdk.Clean.7.1.2.1\lib\Microsoft.Xrm.Sdk.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xrm.Sdk.Workflow, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dynamics.Crm.Sdk.Clean.7.1.2.1\lib\Microsoft.Xrm.Sdk.Workflow.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Activities" />
+    <Reference Include="System.IdentityModel" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /y "$(ProjectDir)Scripts\dhtmlxgantt.js" "$(ProjectDir)$(OutDir)WebResources\Scripts\dhtmlxgantt.js"
+copy /y "$(ProjectDir)Content\dhtmlxgantt\dhtmlxgantt_skyblue.css" "$(ProjectDir)$(OutDir)WebResources\Styles\dhtmlxgant.css"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
