@@ -83,6 +83,27 @@ xRM.IsEmpty = function (value) {
     return (value == null || value.length === 0);
 };
 
+xRM.OpenLookup = function (objecttypecode, callback) {
+    var serverurl = "https://xps.dev.xrmlive.com";
+    var dialogOptions = new window.parent.Xrm.DialogOptions();
+    dialogOptions.width = 800;
+    dialogOptions.height = 600;
+    var url = serverurl + "/_controls/lookup/lookupsingle.aspx?class=null&objecttypes=" + objecttypecode + "&browse=0&ShowNewButton=0&ShowPropButton=1&DefaultType=0";
+    window.parent.Xrm.Internal.openDialog(url, dialogOptions, null, null, callback);
+};
+xRM.LookupFunction = function (elem) {
+    xRM.OpenLookup(8, function (e) {
+
+        if (xRM.IsEmpty(e.items) || xRM.IsEmpty(e.items[0].id)) {
+            return;
+        }
+        var id = e.items[0].id.replace("{", "").replace("}", "");
+        elem.value = e.items[0].name;
+        elem.setAttribute("data-id", id);
+    });
+};
+
+
 xRM.GANTT = {
     OnLoad: function () {
         if (window.parent.Xrm.Page.getAttribute("xrm_name").getValue() != String.empty) {
@@ -95,7 +116,7 @@ xRM.GANTT = {
     GetTasks: function () {
         SDK.REST.retrieveMultipleRecords(
             "Task",
-            "$select=ActivityId, Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,PercentComplete,PriorityCode&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
+            "$select=ActivityId,Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,PercentComplete,PriorityCode,OwnerId&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
             function (data) { xRM.GANTT.OnSuccessGetTasks(data) },
             function (data) { xRM.GANTT.OnError(data) },
             function () { });
@@ -106,6 +127,7 @@ xRM.GANTT = {
         tasks.data = [];
         if (!results) return;
         for (var i = 0; i < results.length; i++) {
+            console.log(results[i]);
             tasks.data[i] = {
                 id: results[i].ActivityId,
                 text: results[i].Subject,
@@ -114,7 +136,9 @@ xRM.GANTT = {
                 duration: results[i].ActualDurationMinutes / 1440,
                 parent: results[i].xrm_ParentGanttId.Id,
                 progress: results[i].PercentComplete / 100,
-                priority: results[i].PriorityCode.Value
+                priority: results[i].PriorityCode.Value,
+                owner: results[i].OwnerId.Id,
+                ownerName: results[i].OwnerId.Name
             }
         }
         xRM.GANTT.GetLinks(tasks);
@@ -235,11 +259,37 @@ xRM.GANTT = {
         ];
 
         var opts = [
-    { key: 1, label: "Task" },
-    { key: 2, label: "Appointment" }
+                    {
+                        key: 1,
+                        label: "Task"
+                    },
+                    {
+                        key: 2,
+                        label: "Appointment"
+                    }
         ];
         gantt.locale.labels.section_entitytype = "Type";
         gantt.locale.labels.section_owner = "Owner";
+
+        gantt.form_blocks["my_editor"] = {
+            render: function (sns) {
+                return "<div class='gantt_cal_ltext' style='height:60px;'><input type='text' class='lookupinput' onclick=\"xRM.LookupFunction(this);\"' readonly data-id=''></div>";
+            },
+            set_value: function (node, value, task, section) {
+                node.childNodes[0].value = task.ownerName || "";
+                node.childNodes[0].setAttribute("data-id", task.owner || "");
+            },
+            get_value: function (node, task, section) {
+                task.ownerName = node.childNodes[0].value;
+                return node.childNodes[0].getAttribute("data-id");
+            },
+            focus: function (node) {
+                var a = node.childNodes[0];
+                a.select();
+                a.focus();
+            }
+        };
+
         gantt.config.lightbox.sections = [
         {
             name: "description",
@@ -267,12 +317,9 @@ xRM.GANTT = {
             },
             {
                 name: "owner",
-                height: 22,
+                height: 200,
                 map_to: "owner",
-                type: "select",
-                options: [
-                    { key: "0", label: "" }
-                ]
+                type: "my_editor"
             }
 
         ];
@@ -363,13 +410,18 @@ xRM.GANTT = {
                 break;
             case "month":
                 xRM.ZoomLevel = xRM.ZOOM_LEVELS.MONTH;
-                gantt.config.scale_unit = "month";
-                gantt.config.date_scale = "%F, %Y";
-                gantt.config.subscales = [
-					{ unit: "day", step: 1, date: "%j, %D" }
-                ];
+                gantt.config.scale_unit = "year";
+                gantt.config.step = 1;
+                gantt.config.date_scale = "%Y";
+                gantt.config.min_column_width = 50;
+
                 gantt.config.scale_height = 50;
-                gantt.templates.date_scale = null;
+                gantt.templates.date_scale = null;
+
+
+                gantt.config.subscales = [
+					{ unit: "month", step: 1, date: "%M" }
+                ];                break;
             case "year":
                 xRM.ZoomLevel = xRM.ZOOM_LEVELS.YEAR;
                 gantt.config.scale_unit = "year";
@@ -403,6 +455,7 @@ xRM.GANTT = {
         gantt.attachEvent("onAfterTaskAdd", function (id, item) {
             if (!id) return;
             var task = gantt.getTask(id);
+            console.log(task);
             var taskCrm = {
                 Subject: task.text,
                 ActualStart: new Date(task.start_date),
@@ -415,6 +468,14 @@ xRM.GANTT = {
                     Name: window.parent.Xrm.Page.data.entity.getPrimaryAttributeValue()
                 }
             };
+
+            if (!xRM.IsEmpty(task.owner)) {
+                taskCrm.OwnerId = {
+                    Id: task.owner,
+                    LogicalName: "systemuser",
+                    Name: task.ownerName
+                }
+            }
 
             if (task.parent !== 0) {
                 var taskParent = gantt.getTask(task.parent);
@@ -447,6 +508,14 @@ xRM.GANTT = {
                     Name: window.parent.Xrm.Page.data.entity.getPrimaryAttributeValue()
                 }
             };
+
+            if (!xRM.IsEmpty(task.owner)) {
+                taskCrm.OwnerId = {
+                    Id: task.owner,
+                    LogicalName: "systemuser",
+                    Name: task.ownerName
+                }
+            }
 
             if (task.parent !== 0) {
                 var taskParent = gantt.getTask(task.parent);
