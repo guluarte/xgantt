@@ -301,11 +301,15 @@ xRM.GANTT = (function () {
             if (!id) return;
 
             var task = gantt.getTask(id);
-            
-            console.log(task.entityType);
 
+            /* task */
             if(task.entityType === EntityTypes[0].key) {
                 addOrUpdateTask(task, true);
+                return;
+            }
+            
+            /* appointment */
+            if (task.entityType === EntityTypes[1].key) {
                 return;
             }
 
@@ -320,10 +324,17 @@ xRM.GANTT = (function () {
 
             var task = gantt.getTask(id);
 
+            /* task */
             if (task.entityType === EntityTypes[0].key) {
                 addOrUpdateTask(task, true);
                 return;
             }
+
+            /* appointment */
+            if (task.entityType === EntityTypes[1].key) {
+                return;
+            }
+
 
         });
     };
@@ -455,6 +466,7 @@ xRM.GANTT = (function () {
     };
 
     var timeScalingOnLoadFunctions = function () {
+
         gantt.config.details_on_create = true;
 
         gantt.config.columns = [
@@ -532,9 +544,10 @@ xRM.GANTT = (function () {
         ];
 
         gantt.locale.labels.section_entitytype = "Type";
+
         gantt.locale.labels.section_owner = "Owner";
 
-        gantt.form_blocks["my_editor"] = {
+        gantt.form_blocks["lookupEditor"] = {
             render: function (sns) {
                 return "<div class='gantt_cal_ltext' style='height:60px;'><input type='text' class='lookupinput' onclick=\"xRM.GANTT.LookupFunction(this);\"' readonly data-id=''></div>";
             },
@@ -545,6 +558,38 @@ xRM.GANTT = (function () {
             get_value: function (node, task, section) {
                 task.ownerName = node.childNodes[0].value;
                 return node.childNodes[0].getAttribute("data-id");
+            },
+            focus: function (node) {
+                var a = node.childNodes[0];
+                a.select();
+                a.focus();
+            }
+        };
+
+        gantt.form_blocks["typeEditor"] = {
+            render: function (sns) {
+                return "<div class='gantt_cal_ltext' style='height:60px;'><select style='width:100%;'><option value='1' selected>Task</option><option value='2'>Appointment</option></select></div>";
+            },
+            set_value: function (node, value, task, section) {
+
+                var sectionId = section.id;
+                var sectionDiv = document.getElementById(sectionId);
+                var inpitDiv = sectionDiv.nextSibling;
+
+                if (task.id.length > 30) { // already in the crm, disable change
+                    sectionDiv.style.display = "none";
+                    inpitDiv.style.display = "none";
+                } else {
+                    sectionDiv.style.display = "";
+                    inpitDiv.style.display = "";
+                }
+                node.childNodes[0].value = "1";
+                gantt.resizeLightbox(); //correct size of lightbox
+            },
+            get_value: function (node, task, section) {
+                var selectedValue = node.childNodes[0].value;
+                console.log(selectedValue);
+                return selectedValue;
             },
             focus: function (node) {
                 var a = node.childNodes[0];
@@ -569,10 +614,8 @@ xRM.GANTT = (function () {
             {
                 name: "entitytype",
                 height: 22,
-                type: "select",
-                map_to: "entityType",
-                options: EntityTypes,
-                default_value: 1
+                type: "typeEditor",
+                map_to: "entityType"
             },
             {
                 name: "time",
@@ -584,7 +627,7 @@ xRM.GANTT = (function () {
                 name: "owner",
                 height: 200,
                 map_to: "owner",
-                type: "my_editor"
+                type: "lookupEditor"
             }
         ];
     };
