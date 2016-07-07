@@ -644,7 +644,7 @@ xRM.GANTT = (function () {
 
     return {
         OnLoad: onLoad,
-        ZoomTasks: zoomTasks,
+        zoomTasks: zoomTasks,
         LookupFunction: lookupFunction,
         HideGantt: hideGantt
     };
