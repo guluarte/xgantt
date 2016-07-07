@@ -84,11 +84,11 @@ xRM.IsEmpty = function (value) {
 };
 
 xRM.OpenLookup = function (objecttypecode, callback) {
-    var serverurl = "https://xps.dev.xrmlive.com";
+    var serverUrl = window.parent.Xrm.Page.context.getServerUrl();
     var dialogOptions = new window.parent.Xrm.DialogOptions();
     dialogOptions.width = 800;
     dialogOptions.height = 600;
-    var url = serverurl + "/_controls/lookup/lookupsingle.aspx?class=null&objecttypes=" + objecttypecode + "&browse=0&ShowNewButton=0&ShowPropButton=1&DefaultType=0";
+    var url = serverUrl + "/_controls/lookup/lookupsingle.aspx?class=null&objecttypes=" + objecttypecode + "&browse=0&ShowNewButton=0&ShowPropButton=1&DefaultType=0";
     window.parent.Xrm.Internal.openDialog(url, dialogOptions, null, null, callback);
 };
 xRM.LookupFunction = function (elem) {
@@ -127,7 +127,7 @@ xRM.GANTT = {
         tasks.data = [];
         if (!results) return;
         for (var i = 0; i < results.length; i++) {
-            console.log(results[i]);
+
             tasks.data[i] = {
                 id: results[i].ActivityId,
                 text: results[i].Subject,
@@ -455,7 +455,7 @@ xRM.GANTT = {
         gantt.attachEvent("onAfterTaskAdd", function (id, item) {
             if (!id) return;
             var task = gantt.getTask(id);
-            console.log(task);
+
             var taskCrm = {
                 Subject: task.text,
                 ActualStart: new Date(task.start_date),
@@ -488,8 +488,12 @@ xRM.GANTT = {
 
             SDK.REST.createRecord(taskCrm,
                 "Task",
-                function (record) { gantt.changeTaskId(task.id, record.ActivityId); },
-                function (data) { xRM.GANTT.OnError(data) });
+                function (record) {
+                     gantt.changeTaskId(task.id, record.ActivityId);
+                },
+                function (data) {
+                    xRM.GANTT.OnError(data);
+                });
         });
     },
     OnBeforeTaskUpdate: function () {
@@ -530,7 +534,9 @@ xRM.GANTT = {
                 taskCrm,
                 "Task",
                 function (record) { },
-                function (data) { xRM.GANTT.OnError(data) });
+                function (data) {
+                    xRM.GANTT.OnError(data);
+                });
         });
     },
     OnBeforeTaskDelete: function () {
@@ -549,7 +555,9 @@ xRM.GANTT = {
                         if (j < toDelete.length)
                             recursivedelete();
                     },
-                    function (data) { xRM.GANTT.OnError(data) });
+                    function (data) {
+                        xRM.GANTT.OnError(data);
+                    });
             }
 
             function recursiveLinkdelete() {
@@ -561,7 +569,9 @@ xRM.GANTT = {
                         if (k < toDeleteL.length)
                             recursiveLinkdelete();
                     },
-                    function (data) { xRM.GANTT.OnError(data) });
+                    function (data) {
+                        xRM.GANTT.OnError(data);
+                    });
             }
 
             toDelete[0] = id;
@@ -626,7 +636,9 @@ xRM.GANTT = {
                 function (record) {
                     gantt.changeLinkId(link.id, record.xrm_taskdependencyId);
                 },
-                function (data) { xRM.GANTT.OnError(data) });
+                function (data) {
+                    xRM.GANTT.OnError(data);
+                });
         });
     },
     OnBeforeLinkDelete: function () {
@@ -635,7 +647,9 @@ xRM.GANTT = {
             SDK.REST.deleteRecord(id,
                 "xrm_taskdependency",
                 function (record) { },
-                function (data) { xRM.GANTT.OnError(data) });
+                function (data) {
+                    xRM.GANTT.OnError(data);
+                });
         }
         );
     },
