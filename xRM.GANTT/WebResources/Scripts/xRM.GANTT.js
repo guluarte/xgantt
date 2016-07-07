@@ -4,42 +4,72 @@
 
 if (typeof (xRM) == "undefined")
 { xRM = { __namespace: true }; }
-
+// ReSharper disable UnusedParameter
+// ReSharper disable Html.EventNotResolved
 xRM.GANTT = (function () {
 
-    var FORM_TYPES = {
-        UNDEFINED: 0,
-        CREATE: 1,
-        UPDATE: 2,
-        READ_ONLY: 3,
-        DISABLED: 4,
-        QUICK_CREATE: 5,
-        BULK_EDIT: 6,
-        READ_OPTMIZED: 11
+    var EntityNames = {
+        Task: {
+            LogicalName: "task",
+            SchemaName: "Task"
+        },
+        Appointment: {
+            LogicalName: "appointment",
+            SchemaName: "Appointment"
+        },
+        Opportunity: {
+            LogicalName: "opportunity",
+            SchemaName: "Opportunity"
+        },
+        User: {
+            LogicalName: "systemuser",
+            SchemaName: "SystemUser"
+        },
+        Project: {
+            LogicalName: "xrm_project",
+            SchemaName: "xrm_project"
+        },
+        TaskDependency: {
+            LogicalName: "xrm_taskdependency",
+            SchemaName: "xrm_taskdependency"
+        }
     };
 
-    var TASK_TYPE_GANTT_CODE = {
-        TASK: 163650000,
-        PROJECT: 163650001,
-        MILESTONE: 163650002
+    //var TaskTypeGanttCode = {
+    //    TASK: 163650000,
+    //    PROJECT: 163650001,
+    //    MILESTONE: 163650002
+    //};
+
+    var TypeCode = {
+        FinishToStart: 163650000,
+        StartToStart: 163650001,
+        FinishToFinish: 163650002,
+        StartToFinish: 163650003
     };
 
-    var TYPE_CODE = {
-        FINISH_TO_START: 163650000,
-        START_TO_START: 163650001,
-        FINISH_TO_FINISH: 163650002,
-        START_TO_FINISH: 163650003
+    var EntityTypes = [
+        {
+            key: "1",
+            label: "Task"
+        },
+        {
+            key: "2",
+            label: "Appointment"
+        }
+    ];
+
+    var ZoomLevels = {
+        Hour: 10,
+        Day: 20,
+        Week: 30,
+        Month: 40,
+        Year: 1000
     };
 
-    var ZOOM_LEVELS = {
-        HOUR: 10,
-        DAY: 20,
-        WEEK: 30,
-        MONTH: 40,
-        YEAR: 1000
-    };
+    var zoomLevel = ZoomLevels.Day;
 
-    var zoomLevel = ZOOM_LEVELS.DAY;
+    var UserObjectTypeCode = 8;
 
     var isEmpty = function (value) {
         return (value == null || value.length === 0);
@@ -51,15 +81,15 @@ xRM.GANTT = (function () {
 
         switch (zoomLevel) {
 
-            case ZOOM_LEVELS.HOUR:
+            case ZoomLevels.Hour:
                 {
                     return duration * 24;
                 }
-            case ZOOM_LEVELS.DAY:
+            case ZoomLevels.Day:
                 {
                     return duration;
                 }
-            case ZOOM_LEVELS.WEEK:
+            case ZoomLevels.Week:
                 {
                     var daysPerWeek = 7;
                     if (duration % daysPerWeek === 0) {
@@ -67,7 +97,7 @@ xRM.GANTT = (function () {
                     }
                     return parseFloat(duration / daysPerWeek).toFixed(1);
                 }
-            case ZOOM_LEVELS.MONTH:
+            case ZoomLevels.Month:
                 {
                     var daysPerMonth = 30;
                     if (duration % daysPerMonth === 0) {
@@ -76,7 +106,7 @@ xRM.GANTT = (function () {
                     return parseFloat(duration / daysPerMonth).toFixed(1);
                 }
 
-            case ZOOM_LEVELS.YEAR:
+            case ZoomLevels.Year:
                 {
                     return parseFloat(duration / 365).toFixed(2);
                 }
@@ -94,9 +124,11 @@ xRM.GANTT = (function () {
         var url = serverUrl + "/_controls/lookup/lookupsingle.aspx?class=null&objecttypes=" + objecttypecode + "&browse=0&ShowNewButton=0&ShowPropButton=1&DefaultType=0";
         window.parent.Xrm.Internal.openDialog(url, dialogOptions, null, null, callback);
     };
+    
 
     var lookupFunction = function (elem) {
-        openLookup(8, function (e) {
+
+        openLookup(UserObjectTypeCode, function (e) {
 
             if (isEmpty(e.items) || isEmpty(e.items[0].id)) {
                 return;
@@ -105,6 +137,7 @@ xRM.GANTT = (function () {
             elem.value = e.items[0].name;
             elem.setAttribute("data-id", id);
         });
+
     };
 
     var onError = function (error) {
@@ -120,16 +153,16 @@ xRM.GANTT = (function () {
                 target: links[i].xrm_TargetTaskId.Id
             }
             switch (links[i].xrm_TypeCode.Value) {
-                case 163650000:
+                case TypeCode.FinishToStart:
                     tasks.links[i].type = "0";
                     break;
-                case 163650001:
+                case TypeCode.StartToStart:
                     tasks.links[i].type = "1";
                     break;
-                case 163650002:
+                case TypeCode.FinishToFinish:
                     tasks.links[i].type = "2";
                     break;
-                case 163650003:
+                case TypeCode.StartToFinish:
                     tasks.links[i].type = "3";
                     break;
             }
@@ -142,7 +175,7 @@ xRM.GANTT = (function () {
 
     var getLinks = function (tasks) {
         SDK.REST.retrieveMultipleRecords(
-            "xrm_taskdependency",
+            EntityNames.TaskDependency.SchemaName,
             "$select=xrm_taskdependencyId,xrm_SourceTaskId,xrm_TargetTaskId,xrm_TypeCode&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
             function (data) {
                 onSuccessGetLinks(data, tasks);
@@ -180,8 +213,8 @@ xRM.GANTT = (function () {
 
     var getTasks = function () {
         SDK.REST.retrieveMultipleRecords(
-            "Task",
-            "$select=ActivityId,Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,PercentComplete,PriorityCode,OwnerId&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
+           EntityNames.Task.SchemaName,
+           "$select=ActivityId,Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,PercentComplete,PriorityCode,OwnerId&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
             function (data) {
                 onSuccessGetTasks(data);
             },
@@ -191,97 +224,112 @@ xRM.GANTT = (function () {
             function () { });
     };
 
-    var onAfterTaskAdd = function () {
-        gantt.attachEvent("onAfterTaskAdd", function (id, item) {
-            if (!id) return;
-            var task = gantt.getTask(id);
+    var getProyectEntityReference = function () {
+        return {
+            Id: window.parent.Xrm.Page.data.entity.getId(),
+            LogicalName: window.parent.Xrm.Page.data.entity.getEntityName(),
+            Name: window.parent.Xrm.Page.data.entity.getPrimaryAttributeValue()
+        }
+    };
 
-            var taskCrm = {
-                Subject: task.text,
-                ActualStart: new Date(task.start_date),
-                ActualDurationMinutes: task.duration * 1440,
-                ActualEnd: new Date(task.end_date),
-                PriorityCode: { Value: task.priority },
-                xrm_ProjectId: {
-                    Id: window.parent.Xrm.Page.data.entity.getId(),
-                    LogicalName: window.parent.Xrm.Page.data.entity.getEntityName(),
-                    Name: window.parent.Xrm.Page.data.entity.getPrimaryAttributeValue()
-                }
-            };
+    var getOwnerEntityReference = function (task) {
+        return {
+            Id: task.owner,
+            LogicalName: EntityNames.User.LogicalName,
+            Name: task.ownerName
+        };
+    };
 
-            if (!isEmpty(task.owner)) {
-                taskCrm.OwnerId = {
-                    Id: task.owner,
-                    LogicalName: "systemuser",
-                    Name: task.ownerName
-                }
-            }
+    var getParentGantEntityReference = function (taskParent) {
+        return {
+            Id: taskParent.id,
+            LogicalName: EntityNames.Task.LogicalName,
+            Name: taskParent.text
+        };
+    };
 
-            if (task.parent !== 0) {
-                var taskParent = gantt.getTask(task.parent);
-                taskCrm.xrm_ParentGanttId = {
-                    Id: taskParent.id,
-                    LogicalName: "task",
-                    Name: taskParent.text
-                }
-            }
+    var addOrUpdateTask = function (task, create) {
 
+        create = create || false;
+
+        var taskCrm = {
+            Subject: task.text,
+            ActualStart: new Date(task.start_date),
+            ActualDurationMinutes: task.duration * 1440,
+            ActualEnd: new Date(task.end_date),
+            PriorityCode: {
+                 Value: task.priority
+            },
+            xrm_ProjectId: getProyectEntityReference(),
+            PercentComplete: Math.round( (task.progress || 0) * 100)
+        };
+
+        if (!isEmpty(task.owner)) {
+            taskCrm.OwnerId = getOwnerEntityReference(task);
+        }
+
+        if (task.parent !== 0) {
+            var taskParent = gantt.getTask(task.parent);
+            taskCrm.xrm_ParentGanttId = getParentGantEntityReference(taskParent);
+        }
+
+        if (create) {
             SDK.REST.createRecord(taskCrm,
-                "Task",
+                EntityNames.Task.SchemaName,
                 function (record) {
                     gantt.changeTaskId(task.id, record.ActivityId);
                 },
                 function (data) {
                     onError(data);
                 });
-        });
-    };
+        } else {
 
-    var onBeforeTaskUpdate = function () {
-        gantt.attachEvent("onBeforeTaskUpdate", function (id, item) {
-            if (!id) return;
-            var task = gantt.getTask(id);
-            var taskCrm = {
-                Subject: task.text,
-                ActualStart: new Date(task.start_date),
-                ActualDurationMinutes: task.duration * 1440,
-                ActualEnd: new Date(task.end_date),
-                PercentComplete: Math.round(task.progress * 100),
-                xrm_ProjectId: {
-                    Id: window.parent.Xrm.Page.data.entity.getId(),
-                    LogicalName: window.parent.Xrm.Page.data.entity.getEntityName(),
-                    Name: window.parent.Xrm.Page.data.entity.getPrimaryAttributeValue()
-                }
-            };
-
-            if (!isEmpty(task.owner)) {
-                taskCrm.OwnerId = {
-                    Id: task.owner,
-                    LogicalName: "systemuser",
-                    Name: task.ownerName
-                }
-            }
-
-            if (task.parent !== 0) {
-                var taskParent = gantt.getTask(task.parent);
-                taskCrm.xrm_ParentGanttId = {
-                    Id: taskParent.id,
-                    LogicalName: "task",
-                    Name: taskParent.text
-                }
-            }
-
-            SDK.REST.updateRecord(id,
+            SDK.REST.updateRecord(task.id,
                 taskCrm,
-                "Task",
+                EntityNames.Task.SchemaName,
                 function (record) { },
                 function (data) {
                     onError(data);
                 });
+        }
+    };
+
+    var onAfterTaskAdd = function () {
+
+        gantt.attachEvent("onAfterTaskAdd", function (id, item) {
+
+            if (!id) return;
+
+            var task = gantt.getTask(id);
+            
+            console.log(task.entityType);
+
+            if(task.entityType === EntityTypes[0].key) {
+                addOrUpdateTask(task, true);
+                return;
+            }
+
+        });
+    };
+
+    var onBeforeTaskUpdate = function () {
+
+        gantt.attachEvent("onBeforeTaskUpdate", function (id, item) {
+
+            if (!id) return;
+
+            var task = gantt.getTask(id);
+
+            if (task.entityType === EntityTypes[0].key) {
+                addOrUpdateTask(task, true);
+                return;
+            }
+
         });
     };
 
     var onBeforeTaskDelete = function () {
+
         gantt.attachEvent("onBeforeTaskDelete", function (id, item) {
             if (!id) return;
             var toDelete = [];
@@ -291,8 +339,10 @@ xRM.GANTT = (function () {
 
             function recursivedelete() {
                 SDK.REST.deleteRecord(toDelete[j],
-                    "Task",
+                    EntityNames.Task.SchemaName,
+
                     function (record) {
+
                         j++;
                         if (j < toDelete.length)
                             recursivedelete();
@@ -305,7 +355,7 @@ xRM.GANTT = (function () {
             function recursiveLinkdelete() {
                 if (toDeleteL.length < 1) return;
                 SDK.REST.deleteRecord(toDeleteL[k],
-                    "xrm_taskdependency",
+                    EntityNames.TaskDependency.SchemaName,
                     function (record) {
                         k++;
                         if (k < toDeleteL.length)
@@ -337,6 +387,7 @@ xRM.GANTT = (function () {
     };
 
     var onAfterLinkAdd = function () {
+
         gantt.attachEvent("onAfterLinkAdd", function (id, item) {
             if (!id) return;
             var link = gantt.getLink(id);
@@ -345,37 +396,33 @@ xRM.GANTT = (function () {
             var linkCrm = {
                 xrm_TargetTaskId: {
                     Id: link.target,
-                    LogicalName: "task",
+                    LogicalName: EntityNames.Task.LogicalName,
                     Name: tTarget.text
                 },
                 xrm_SourceTaskId: {
                     Id: link.source,
-                    LogicalName: "task",
+                    LogicalName: EntityNames.Task.LogicalName,
                     Name: tSource.text
                 },
-                xrm_ProjectId: {
-                    Id: window.parent.Xrm.Page.data.entity.getId(),
-                    LogicalName: window.parent.Xrm.Page.data.entity.getEntityName(),
-                    Name: window.parent.Xrm.Page.data.entity.getPrimaryAttributeValue()
-                }
+                xrm_ProjectId: getProyectEntityReference()
             };
             switch (link.type) {
                 case "0":
-                    linkCrm.xrm_TypeCode = { Value: 163650000 };
+                    linkCrm.xrm_TypeCode = { Value: TypeCode.FinishToStart };
                     break;
                 case "1":
-                    linkCrm.xrm_TypeCode = { Value: 163650001 };
+                    linkCrm.xrm_TypeCode = { Value: TypeCode.StartToStart };
                     break;
                 case "2":
-                    linkCrm.xrm_TypeCode = { Value: 163650002 };
+                    linkCrm.xrm_TypeCode = { Value: TypeCode.FinishToFinish };
                     break;
                 case "3":
-                    linkCrm.xrm_TypeCode = { Value: 163650003 };
+                    linkCrm.xrm_TypeCode = { Value: TypeCode.StartToFinish };
                     break;
             }
 
             SDK.REST.createRecord(linkCrm,
-                "xrm_taskdependency",
+                EntityNames.TaskDependency.SchemaName,
                 function (record) {
                     gantt.changeLinkId(link.id, record.xrm_taskdependencyId);
                 },
@@ -386,10 +433,11 @@ xRM.GANTT = (function () {
     };
 
     var onBeforeLinkDelete = function () {
+
         gantt.attachEvent("onBeforeLinkDelete", function (id, item) {
             if (!id) return;
             SDK.REST.deleteRecord(id,
-                "xrm_taskdependency",
+                EntityNames.TaskDependency.SchemaName,
                 function (record) { },
                 function (data) {
                     onError(data);
@@ -428,15 +476,15 @@ xRM.GANTT = (function () {
                 align: "center",
                 width: 60
             },
-            {
-                name: "priority",
-                label: "Priority",
-                template: function (obj) {
-                    return gantt.getLabel("priority", obj.priority);
-                },
-                align: "center",
-                width: 60
-            },
+            //{
+            //    name: "priority",
+            //    label: "Priority",
+            //    template: function (obj) {
+            //        return gantt.getLabel("priority", obj.priority);
+            //    },
+            //    align: "center",
+            //    width: 60
+            //},
             {
                 name: "duration",
                 label: "Duration",
@@ -483,16 +531,6 @@ xRM.GANTT = (function () {
             }
         ];
 
-        var opts = [
-            {
-                key: 1,
-                label: "Task"
-            },
-            {
-                key: 2,
-                label: "Appointment"
-            }
-        ];
         gantt.locale.labels.section_entitytype = "Type";
         gantt.locale.labels.section_owner = "Owner";
 
@@ -532,8 +570,8 @@ xRM.GANTT = (function () {
                 name: "entitytype",
                 height: 22,
                 type: "select",
-                map_to: "entitytype",
-                options: opts,
+                map_to: "entityType",
+                options: EntityTypes,
                 default_value: 1
             },
             {
@@ -552,21 +590,22 @@ xRM.GANTT = (function () {
     };
 
     var onLoad = function () {
-        if (window.parent.Xrm.Page.getAttribute("xrm_name").getValue() != String.empty) {
+        if (window.parent.Xrm.Page.getAttribute("xrm_name").getValue() !== String.empty) {
 
             getTasks();
             attachGanntEvents();
             timeScalingOnLoadFunctions();
+
         }
     };
 
     var zoomTasks = function (node) {
 
-        zoomLevel = ZOOM_LEVELS.DAY;
+        zoomLevel = ZoomLevels.Day;
 
         switch (node.value) {
             case "hour":
-                zoomLevel = ZOOM_LEVELS.HOUR;
+                zoomLevel = ZoomLevels.Hour;
                 gantt.config.scale_unit = "day";
                 gantt.config.date_scale = "%d %M";
                 gantt.config.scale_height = 60;
@@ -576,7 +615,7 @@ xRM.GANTT = (function () {
                 ];
                 break;
             case "day":
-                zoomLevel = ZOOM_LEVELS.DAY;
+                zoomLevel = ZoomLevels.Day;
                 gantt.config.scale_unit = "day";
                 gantt.config.step = 1;
                 gantt.config.date_scale = "%d %M";
@@ -586,7 +625,7 @@ xRM.GANTT = (function () {
                 gantt.templates.date_scale = null;
                 break;
             case "week":
-                zoomLevel = ZOOM_LEVELS.WEEK;
+                zoomLevel = ZoomLevels.Week;
                 var weekScaleTemplate = function (date) {
                     var dateToStr = gantt.date.date_to_str("%d %M");
                     var endDate = gantt.date.add(gantt.date.add(date, 1, "week"), -1, "day");
@@ -602,7 +641,7 @@ xRM.GANTT = (function () {
                 gantt.config.scale_height = 50;
                 break;
             case "month":
-                zoomLevel = ZOOM_LEVELS.MONTH;
+                zoomLevel = ZoomLevels.Month;
                 gantt.config.scale_unit = "year";
                 gantt.config.step = 1;
                 gantt.config.date_scale = "%Y";
@@ -616,7 +655,7 @@ xRM.GANTT = (function () {
 					{ unit: "month", step: 1, date: "%M" }
                 ];                break;
             case "year":
-                zoomLevel = ZOOM_LEVELS.YEAR;
+                zoomLevel = ZoomLevels.Year;
                 gantt.config.scale_unit = "year";
                 gantt.config.step = 1;
                 gantt.config.date_scale = "%Y";
@@ -635,7 +674,7 @@ xRM.GANTT = (function () {
     };
 
     var hideGantt = function () {
-        if (Xrm.Page.getAttribute("xrm_name").getValue() == String.empty) {
+        if (Xrm.Page.getAttribute("xrm_name").getValue() === String.empty) {
             Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(false);
         } else {
             Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(true);
@@ -650,3 +689,5 @@ xRM.GANTT = (function () {
     };
 
 })();
+// ReSharper restore UnusedParameter
+// ReSharper restore Html.EventNotResolved
