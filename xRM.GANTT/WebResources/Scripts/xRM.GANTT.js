@@ -149,8 +149,8 @@ xRM.GANTT = (function () {
         for (var i = 0; i < links.length; i++) {
             tasks.links[i] = {
                 id: links[i].xrm_taskdependencyId,
-                source: links[i].xrm_SourceTaskId.Id,
-                target: links[i].xrm_TargetTaskId.Id
+                source: links[i].xrm_SourceId,
+                target: links[i].xrm_TargetId
             }
             switch (links[i].xrm_TypeCode.Value) {
                 case TypeCode.FinishToStart:
@@ -176,7 +176,7 @@ xRM.GANTT = (function () {
     var getLinks = function (tasks) {
         SDK.REST.retrieveMultipleRecords(
             EntityNames.TaskDependency.SchemaName,
-            "$select=xrm_taskdependencyId,xrm_SourceTaskId,xrm_TargetTaskId,xrm_TypeCode&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
+            "$select=xrm_taskdependencyId,xrm_SourceId,xrm_TargetId,xrm_TypeCode&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
             function (data) {
                 onSuccessGetLinks(data, tasks);
             },
@@ -200,7 +200,7 @@ xRM.GANTT = (function () {
                 start_date: results[i].ActualStart,
                 end_date: results[i].ActualEnd,
                 duration: results[i].ActualDurationMinutes / 1440,
-                parent: results[i].xrm_ParentGanttId.Id,
+                parent: results[i].xrm_ParentGanttId,
                 progress: results[i].PercentComplete / 100,
                 priority: results[i].PriorityCode.Value,
                 owner: results[i].OwnerId.Id,
@@ -239,15 +239,6 @@ xRM.GANTT = (function () {
             Name: task.ownerName
         };
     };
-
-    var getParentGantEntityReference = function (taskParent) {
-        return {
-            Id: taskParent.id,
-            LogicalName: EntityNames.Task.LogicalName,
-            Name: taskParent.text
-        };
-    };
-
     var addOrUpdateTask = function (task, create) {
 
         create = create || false;
@@ -270,7 +261,7 @@ xRM.GANTT = (function () {
 
         if (task.parent !== 0) {
             var taskParent = gantt.getTask(task.parent);
-            taskCrm.xrm_ParentGanttId = getParentGantEntityReference(taskParent);
+            taskCrm.xrm_ParentGanttId = taskParent.id;
         }
 
         if (create) {
@@ -326,7 +317,7 @@ xRM.GANTT = (function () {
 
             /* task */
             if (task.entityType === EntityTypes[0].key) {
-                addOrUpdateTask(task, true);
+                addOrUpdateTask(task, false);
                 return;
             }
 
@@ -334,7 +325,6 @@ xRM.GANTT = (function () {
             if (task.entityType === EntityTypes[1].key) {
                 return;
             }
-
 
         });
     };
@@ -405,16 +395,8 @@ xRM.GANTT = (function () {
             var tSource = gantt.getTask(link.source);
             var tTarget = gantt.getTask(link.target);
             var linkCrm = {
-                xrm_TargetTaskId: {
-                    Id: link.target,
-                    LogicalName: EntityNames.Task.LogicalName,
-                    Name: tTarget.text
-                },
-                xrm_SourceTaskId: {
-                    Id: link.source,
-                    LogicalName: EntityNames.Task.LogicalName,
-                    Name: tSource.text
-                },
+                xrm_TargetId: link.target,
+                xrm_SourceId: link.source,
                 xrm_ProjectId: getProyectEntityReference()
             };
             switch (link.type) {
@@ -588,7 +570,6 @@ xRM.GANTT = (function () {
             },
             get_value: function (node, task, section) {
                 var selectedValue = node.childNodes[0].value;
-                console.log(selectedValue);
                 return selectedValue;
             },
             focus: function (node) {
@@ -633,7 +614,7 @@ xRM.GANTT = (function () {
     };
 
     var onLoad = function () {
-        if (window.parent.Xrm.Page.getAttribute("xrm_name").getValue() !== String.empty) {
+        if (window.parent.Xrm.Page.getAttribute("xrm_name") != null && window.parent.Xrm.Page.getAttribute("xrm_name").getValue() !== String.empty) {
 
             getTasks();
             attachGanntEvents();
