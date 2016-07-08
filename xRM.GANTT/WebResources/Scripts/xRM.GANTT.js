@@ -214,7 +214,8 @@ xRM.GANTT = (function () {
                 progress: results[i].PercentComplete / 100,
                 priority: results[i].PriorityCode.Value,
                 owner: results[i].OwnerId.Id,
-                ownerName: results[i].OwnerId.Name
+                ownerName: results[i].OwnerId.Name,
+                entityType: EntityTypes[0].key
             }
         }
         getLinks(tasks);
@@ -256,7 +257,7 @@ xRM.GANTT = (function () {
         var taskCrm = {
             Subject: task.text,
             ActualStart: new Date(task.start_date),
-            ActualDurationMinutes: task.duration * 1440,
+            ActualDurationMinutes: task.duration * 60,
             ActualEnd: new Date(task.end_date),
             //PriorityCode: {
             //     Value: task.priority
@@ -293,6 +294,25 @@ xRM.GANTT = (function () {
                 });
         }
     };
+    
+    var getAndCreateOrUpdateTask = function (id, create) {
+        create = create || false;
+
+        if (!id) return;
+
+        var task = gantt.getTask(id);
+
+        /* task */
+        if (task.entityType === EntityTypes[0].key) {
+            addOrUpdateTask(task, create);
+            return;
+        }
+
+        /* appointment */
+        if (task.entityType === EntityTypes[1].key) {
+            return;
+        }
+    };
 
     var onAfterTaskAdd = function () {
 
@@ -300,18 +320,19 @@ xRM.GANTT = (function () {
 
             if (!id) return;
 
-            var task = gantt.getTask(id);
+            getAndCreateOrUpdateTask(id, true);
 
-            /* task */
-            if(task.entityType === EntityTypes[0].key) {
-                addOrUpdateTask(task, true);
-                return;
-            }
-            
-            /* appointment */
-            if (task.entityType === EntityTypes[1].key) {
-                return;
-            }
+        });
+    };
+    var onBeforeTaskDrag = function () {
+
+        gantt.attachEvent("onBeforeTaskDrag", function (id, mode, e) {
+
+            if (!id) return false;
+
+            getAndCreateOrUpdateTask(id, false);
+
+            return true;
 
         });
     };
@@ -322,18 +343,7 @@ xRM.GANTT = (function () {
 
             if (!id) return;
 
-            var task = gantt.getTask(id);
-
-            /* task */
-            if (task.entityType === EntityTypes[0].key) {
-                addOrUpdateTask(task, false);
-                return;
-            }
-
-            /* appointment */
-            if (task.entityType === EntityTypes[1].key) {
-                return;
-            }
+            getAndCreateOrUpdateTask(id, false);
 
         });
     };
@@ -453,6 +463,8 @@ xRM.GANTT = (function () {
         onBeforeTaskDelete();
         onAfterLinkAdd();
         onBeforeLinkDelete();
+    
+        onBeforeTaskDrag();
     };
 
     var timeScalingOnLoadFunctions = function () {
