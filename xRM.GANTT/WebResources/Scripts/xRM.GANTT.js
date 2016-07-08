@@ -768,17 +768,9 @@ xRM.GANTT = (function () {
 
                 gantt.config.scale_unit = "day";
                 gantt.config.date_scale = "%l, %F %d";
-                gantt.config.min_column_width = 40;
+                gantt.config.min_column_width = 50;
                 gantt.config.duration_unit = "hour";
-                gantt.config.scale_height = 20 * 3;
-
-                gantt.templates.task_cell_class = function (task, date) {
-                    if (!gantt.isWorkTime(date, 'hour')) {
-                        return ("no_work_hour");
-                    }
-
-                    return "";
-                };                gantt.config.subscales = [
+                gantt.config.scale_height = 20 * 3;                gantt.config.subscales = [
                         {
                             unit: "hour",
                             step: 1,
@@ -853,13 +845,39 @@ xRM.GANTT = (function () {
         parseTasks();
     };
 
+    var isProjectInitialized = function () {
+
+        if (window.parent.Xrm.Page.getAttribute("xrm_name").getValue() === null) {
+            return false;
+        }
+
+        if (window.parent.Xrm.Page.getAttribute("xrm_name").getValue() === "") {
+            return false;
+        }
+
+        return true;
+    };
+
+    var hideGantt = function () {
+        if (!isProjectInitialized()) {
+            Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(false);
+        } else {
+            Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(true);
+        }
+    };
+
     var onLoad = function () {
-        if (window.parent.Xrm.Page.getAttribute("xrm_name") != null && window.parent.Xrm.Page.getAttribute("xrm_name").getValue() !== String.empty) {
+        if (isProjectInitialized()) {
 
             getTasks();
             attachGanntEvents();
             timeScalingOnLoadFunctions();
             formatGantt();
+
+        } else {
+
+            hideGantt();
+
         }
     };
 
@@ -867,14 +885,6 @@ xRM.GANTT = (function () {
 
         formatGantt(node.value);
 
-    };
-
-    var hideGantt = function () {
-        if (Xrm.Page.getAttribute("xrm_name").getValue() === String.empty) {
-            Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(false);
-        } else {
-            Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(true);
-        }
     };
 
     return {
