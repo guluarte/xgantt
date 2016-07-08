@@ -122,8 +122,7 @@ xRM.GANTT = (function () {
     };
 
     var openLookup = function (objecttypecode, callback) {
-        //var serverUrl = window.parent.Xrm.Page.context.getServerUrl();
-        var serverUrl = "https://xps.dev.xrmlive.com";
+        var serverUrl = window.parent.Xrm.Page.context.getClientUrl();
         var dialogOptions = new window.parent.Xrm.DialogOptions();
         dialogOptions.width = 800;
         dialogOptions.height = 600;
