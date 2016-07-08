@@ -79,31 +79,33 @@ xRM.GANTT = (function () {
 
         var duration = obj.duration;
 
+        if (duration === 0) {
+            return duration;
+        }
+
         switch (zoomLevel) {
 
             case ZoomLevels.Hour:
-                {
-                    return duration * 24;
-                }
+                return duration;
             case ZoomLevels.Day:
                 {
-                    return duration;
+                    return parseFloat(duration / 24).toFixed(1);;
                 }
             case ZoomLevels.Week:
                 {
-                    var daysPerWeek = 7;
-                    if (duration % daysPerWeek === 0) {
-                        return duration / daysPerWeek;
+                    var hoursPerWeek = 7 * 24;
+                    if (duration % hoursPerWeek === 0) {
+                        return duration / hoursPerWeek;
                     }
-                    return parseFloat(duration / daysPerWeek).toFixed(1);
+                    return parseFloat(duration / hoursPerWeek).toFixed(1);
                 }
             case ZoomLevels.Month:
                 {
-                    var daysPerMonth = 30;
-                    if (duration % daysPerMonth === 0) {
-                        return duration / daysPerMonth;
+                    var hoursPerMonth = 30 * 24;
+                    if (duration % hoursPerMonth === 0) {
+                        return duration / hoursPerMonth;
                     }
-                    return parseFloat(duration / daysPerMonth).toFixed(1);
+                    return parseFloat(duration / hoursPerMonth).toFixed(1);
                 }
 
             case ZoomLevels.Year:
@@ -144,6 +146,12 @@ xRM.GANTT = (function () {
         alert("Operation Failed :" + error.message);
     };
 
+    var serverTasks = [];
+
+    var parseTasks = function () {
+        gantt.parse(serverTasks);
+    };
+
     var onSuccessGetLinks = function (links, tasks) {
         tasks.links = [];
         for (var i = 0; i < links.length; i++) {
@@ -169,8 +177,10 @@ xRM.GANTT = (function () {
         }
 
         gantt.init("gantt_here");
+        
+        serverTasks = tasks;
 
-        gantt.parse(tasks);
+        parseTasks();
     };
 
     var getLinks = function (tasks) {
@@ -248,9 +258,9 @@ xRM.GANTT = (function () {
             ActualStart: new Date(task.start_date),
             ActualDurationMinutes: task.duration * 1440,
             ActualEnd: new Date(task.end_date),
-            PriorityCode: {
-                 Value: task.priority
-            },
+            //PriorityCode: {
+            //     Value: task.priority
+            //},
             xrm_ProjectId: getProyectEntityReference(),
             PercentComplete: Math.round( (task.progress || 0) * 100)
         };
@@ -260,8 +270,7 @@ xRM.GANTT = (function () {
         }
 
         if (task.parent !== 0) {
-            var taskParent = gantt.getTask(task.parent);
-            taskCrm.xrm_ParentGanttId = taskParent.id;
+            taskCrm.xrm_ParentGanttId = task.parent;
         }
 
         if (create) {
@@ -392,8 +401,7 @@ xRM.GANTT = (function () {
         gantt.attachEvent("onAfterLinkAdd", function (id, item) {
             if (!id) return;
             var link = gantt.getLink(id);
-            var tSource = gantt.getTask(link.source);
-            var tTarget = gantt.getTask(link.target);
+
             var linkCrm = {
                 xrm_TargetId: link.target,
                 xrm_SourceId: link.source,
@@ -613,23 +621,18 @@ xRM.GANTT = (function () {
         ];
     };
 
-    var onLoad = function () {
-        if (window.parent.Xrm.Page.getAttribute("xrm_name") != null && window.parent.Xrm.Page.getAttribute("xrm_name").getValue() !== String.empty) {
+    var formatGantt = function (timeValue) {
 
-            getTasks();
-            attachGanntEvents();
-            timeScalingOnLoadFunctions();
-
-        }
-    };
-
-    var zoomTasks = function (node) {
+        timeValue = timeValue || "day";
 
         zoomLevel = ZoomLevels.Day;
 
-        switch (node.value) {
+        gantt.config.duration_unit = "hour";//an hour
+
+        switch (timeValue) {
             case "hour":
                 zoomLevel = ZoomLevels.Hour;
+
                 gantt.config.scale_unit = "day";
                 gantt.config.date_scale = "%d %M";
                 gantt.config.scale_height = 60;
@@ -640,6 +643,7 @@ xRM.GANTT = (function () {
                 break;
             case "day":
                 zoomLevel = ZoomLevels.Day;
+
                 gantt.config.scale_unit = "day";
                 gantt.config.step = 1;
                 gantt.config.date_scale = "%d %M";
@@ -695,6 +699,23 @@ xRM.GANTT = (function () {
                 break;
         }
         gantt.render();
+        parseTasks();
+    };
+
+    var onLoad = function () {
+        if (window.parent.Xrm.Page.getAttribute("xrm_name") != null && window.parent.Xrm.Page.getAttribute("xrm_name").getValue() !== String.empty) {
+
+            getTasks();
+            attachGanntEvents();
+            timeScalingOnLoadFunctions();
+            formatGantt();
+        }
+    };
+
+    var zoomTasks = function (node) {
+
+        formatGantt(node.value);
+
     };
 
     var hideGantt = function () {
