@@ -457,7 +457,7 @@ xRM.GANTT = (function () {
             }
         }
 
-
+        initGannt();
 
     };
 
@@ -476,7 +476,7 @@ xRM.GANTT = (function () {
             function () {
             });
 
-        initGannt();
+        
     };
 
     var onSuccessGetTasksEntities = function (results) {
@@ -887,9 +887,9 @@ xRM.GANTT = (function () {
 
     var hideGantt = function () {
         if (!isProjectInitialized()) {
-            Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(false);
+            window.parent.Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(false);
         } else {
-            Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(true);
+            window.parent.Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(true);
         }
     };
 
