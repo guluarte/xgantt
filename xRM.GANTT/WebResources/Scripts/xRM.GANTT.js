@@ -238,7 +238,7 @@ xRM.GANTT = (function () {
 
         gantt.locale.labels.section_entitytype = "Type";
 
-        gantt.locale.labels.section_owner = "Owner";
+        gantt.locale.labels.section_owner = "User";
 
         gantt.form_blocks["lookupEditor"] = {
             render: function (sns) {
@@ -849,7 +849,7 @@ xRM.GANTT = (function () {
     var onLightboxSave = function () {
         gantt.attachEvent("onLightboxSave", function (id, item) {
             if (!item.owner) {
-                dhtmlx.message({ type: "error", text: "Choose a worker for this task." });
+                dhtmlx.message({ type: "error", text: "Choose a user for this task." });
                 return false;
             }
             if (!item.text) {
@@ -890,6 +890,7 @@ xRM.GANTT = (function () {
             window.parent.Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(false);
         } else {
             window.parent.Xrm.Page.ui.tabs.get("GANTT_tab").setVisible(true);
+
         }
     };
 
