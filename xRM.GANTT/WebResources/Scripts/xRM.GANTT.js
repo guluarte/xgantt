@@ -1,7 +1,7 @@
 /// <reference path="SDK.REST.js" />
-/// <reference path="../../scripts/typings/xrm/xrm.d.ts" />
-/// <reference path="../../scripts/typings/xrm/Q.d.ts" />
-/// <reference path="../../scripts/dhtmlxgantt.js" />
+/// <reference path="../../Scripts/typings/xrm/xrm.d.ts" />
+/// <reference path="../../Scripts/typings/xrm/Q.d.ts" />
+/// <reference path="../../Scripts/dhtmlxgantt.js" />
 
 /*
  * TODO: Add promises 
@@ -13,6 +13,7 @@ var xRM = xRM || {};
 // ReSharper disable Html.EventNotResolved
 xRM.GANTT = (function () {
 
+    var Q = window.Q;
     var log = function (msg) {
         //console.log(msg);
     };
@@ -462,26 +463,6 @@ xRM.GANTT = (function () {
             }
         }
 
-        initGannt();
-
-    };
-
-    var getLinks = function () {
-        log("Retrieving links");
-
-        SDK.REST.retrieveMultipleRecords(
-            EntityNames.TaskDependency.SchemaName,
-            "$select=xrm_taskdependencyId,xrm_SourceId,xrm_TargetId,xrm_TypeCode&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
-            function (data) {
-                onSuccessGetLinks(data);
-            },
-            function (data) {
-                onError(data);
-            },
-            function () {
-            });
-
-        
     };
 
     var onSuccessGetTasksEntities = function (results) {
@@ -529,35 +510,66 @@ xRM.GANTT = (function () {
 
     };
 
-    var getTasks = function () {
-        log("Retrieving tasks");
+    var retrieveMultipleRecordsPromise = function (entityName, query) {
+
+        var deferred = Q.defer();
+
         SDK.REST.retrieveMultipleRecords(
-           EntityNames.Task.SchemaName,
-           "$select=ActivityId,Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,PercentComplete,PriorityCode,OwnerId&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
+           entityName,
+           query,
             function (data) {
-                onSuccessGetTasksEntities(data);
+                deferred.resolve(data);
             },
             function (data) {
-                onError(data);
+                deferred.reject(data);
             },
-                function () { //OnComplete
-                    log("Retrieving appointments");
-                    SDK.REST.retrieveMultipleRecords(
-                        EntityNames.Appointment.SchemaName,
-                        "$select=ActivityId,Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,xrm_Percent,OwnerId&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'",
-                        function (data) {
-                            onSuccessGetAppointMentEntities(data);
-                        },
-                        function (data) {
-                            onError(data);
-                        },
-                            function () { //OnComplete
-                                log("Retrieving links");
-                                getLinks();
+            function () {
 
-                            });
-                });
+            });
 
+        return deferred.promise;
+    };
+
+    var loadData = function () {
+
+        var tasksPromise = retrieveMultipleRecordsPromise(EntityNames.Task.SchemaName, "$select=ActivityId,Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,PercentComplete,PriorityCode,OwnerId&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'").then(function (data) {
+
+            onSuccessGetTasksEntities(data);
+
+        }, function (error) {
+
+            onError(error);
+
+        }).then(function () {
+
+            log("Retrieving Appointments");
+
+            retrieveMultipleRecordsPromise(EntityNames.Appointment.SchemaName, "$select=ActivityId,Subject,ActualStart,ActualDurationMinutes,ActualEnd,xrm_ParentGanttId,xrm_Percent,OwnerId&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'").then(function (data) {
+
+                onSuccessGetAppointMentEntities(data);
+
+            }, function (error) {
+
+                onError(error);
+
+            });
+
+        }).then(function () {
+
+            log("Retrieving links");
+
+            retrieveMultipleRecordsPromise(EntityNames.TaskDependency.SchemaName, "$select=xrm_taskdependencyId,xrm_SourceId,xrm_TargetId,xrm_TypeCode&$filter=xrm_ProjectId/Id eq guid'" + window.parent.Xrm.Page.data.entity.getId() + "'").then(function (data) {
+
+                onSuccessGetLinks(data);
+
+            }, function (error) {
+
+                onError(error);
+
+            });
+        });
+
+        return tasksPromise();
     };
 
     var getProyectEntityReference = function () {
@@ -902,9 +914,12 @@ xRM.GANTT = (function () {
     var onLoad = function () {
         if (isProjectInitialized()) {
 
-            getTasks();
-            attachGanntEvents();
-
+            loadData().then(function () {
+                log("Initializing gantt");
+                initGannt();
+                attachGanntEvents();
+            });
+            
         } else {
 
             hideGantt();
