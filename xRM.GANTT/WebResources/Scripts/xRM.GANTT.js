@@ -1,6 +1,11 @@
 /// <reference path="SDK.REST.js" />
 /// <reference path="../../scripts/typings/xrm/xrm.d.ts" />
+/// <reference path="../../scripts/typings/xrm/Q.d.ts" />
 /// <reference path="../../scripts/dhtmlxgantt.js" />
+
+/*
+ * TODO: Add promises 
+ */
 
 var xRM = xRM || {};
 

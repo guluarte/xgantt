@@ -80,6 +80,7 @@
     <None Include="Scripts\sources\locale\locale_ua.js.map" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\typings\q\Q.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\xrm\parature.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\xrm\xrm-6.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\xrm\xrm-7.0.d.ts" />
@@ -133,6 +134,8 @@
     <Content Include="Scripts\locale\locale_sv.js" />
     <Content Include="Scripts\locale\locale_tr.js" />
     <Content Include="Scripts\locale\locale_ua.js" />
+    <Content Include="Scripts\q.js" />
+    <Content Include="Scripts\q.min.js" />
     <Content Include="Scripts\sources\dhtmlxgantt.js" />
     <Content Include="Scripts\sources\ext\dhtmlxgantt_csp.js" />
     <Content Include="Scripts\sources\ext\dhtmlxgantt_fullscreen.js" />
@@ -209,6 +212,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /y "$(ProjectDir)Scripts\dhtmlxgantt.js" "$(ProjectDir)$(OutDir)WebResources\Scripts\dhtmlxgantt.js"
+copy /y "$(ProjectDir)Scripts\q.min.js" "$(ProjectDir)$(OutDir)WebResources\Scripts\q.min.js"
 copy /y "$(ProjectDir)Content\dhtmlxgantt\dhtmlxgantt_terrace.css" "$(ProjectDir)$(OutDir)WebResources\Styles\dhtmlxgant.css"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
